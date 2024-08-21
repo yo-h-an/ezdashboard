@@ -1,0 +1,172 @@
+
+/* Left nav */
+.nav {
+	background: @gray-ultra-light;
+	border: 1px solid #CCC;
+	.dark-theme & {	background: @dark-blue;	}
+
+	.nav-tab {
+		display: block;
+		padding: 20px 37px 20px 15px;
+		width: 100%;
+		text-align: left;
+		transition: 0.1s;
+		font-size: 16px;
+		position: relative;
+		border-top: none;
+		border-left: none;
+		border-right: none;
+
+		&.active {
+			// background-color: @gray-lighter;
+			background-color: @gray-intermediate;
+			.dark-theme & {
+				background-color: @blue-dark;
+				color: @gray-light;
+			}
+		}
+		&:last-of-type {
+			border-bottom: none
+		}
+		span.fa {
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			right: 7px;
+			margin: auto;
+			width: 15px;
+			height: 30px;
+			font-size: 30px;
+			color: @gray-base;
+			.dark-theme & {	color: @gray-light; }
+		}
+	}
+}
+
+/* Right content */
+.content {
+	border: 1px solid #CCC;
+	margin-left: -1px;// Border offset
+	background: @white;
+	.dark-theme & {	background: @dark-blue;	}
+
+	.tab-content {
+		width: 100%;
+		padding: 0 15px 7.5px;
+		display: none;
+
+		&.active {
+			display: block;
+		}
+		h2,
+		h3,
+		h4 {
+			padding: 10px 0;
+			margin: 7.5px 0;
+			border-bottom: solid 1px #DDD;
+			.dark-theme & {	color: @gray-light;	}
+		}
+		.subnav {
+			margin-top: 15px;
+			font-size: 0;// Trick that kills whitespaces
+			background: @gray-ultra-light;
+			border: solid 1px #CCC;
+			.dark-theme & {	background: @dark-blue;	}
+
+			.subnav-tab {
+				display: inline-block;
+				vertical-align: middle;
+				padding: 14px 16px;
+				transition: 0.1s;
+				font-size: 16px;
+				border-top: none;
+				border-left: none;
+				border-bottom: none;
+
+				&.active {
+					// background-color: @gray-lighter;
+					background-color: @gray-intermediate;
+					.dark-theme & {
+						background-color: @blue-dark;
+						color: @gray-light;
+					}
+				}
+			}
+		}
+		.subnav-content {
+			margin-top: 7.5px;
+			display: none;
+
+			&.active {
+				display: inherit;
+			}
+		}
+		.row {
+			padding-left: 7.5px;
+			padding-right: 7.5px;
+
+			[class*="col-"] {
+				padding: 0;
+			}
+			.tile {
+				.no-margins & {
+					margin: 0;
+				}
+			}
+		}
+	}
+}
+
+/* Universal rules for dark theme */
+.dark-theme * {
+	// Using !important there to override all properties at once.
+	// There's no exception so it's ok.
+	border-color: @blue-dark2 !important;
+}
+
+
+/* Theme toggle button */
+.theme-toggle {
+	padding: 0.5em 1em;
+	text-transform: uppercase;
+}
+
+
+// markdown
+
+.my-markdown h1,
+.my-markdown h2,
+.my-markdown h3,
+.my-markdown h4,
+.my-markdown h5,
+.my-markdown h6 {
+  border-bottom: 0px;
+  text-align: left;
+}
+
+.my-markdown h1 {
+	font-size: 36px;
+}
+.my-markdown h2 {
+	font-size: 30px;
+}
+.my-markdown h3 {
+	font-size: 24px;
+}
+.my-markdown h4 {
+	font-size: 18px;
+}
+.my-markdown h5 {
+	font-size: 17px;
+}
+.my-markdown h6 {
+	font-size: 16px;
+}
+.my-markdown table {
+	font-size: 16px;
+	font-weight: normal;
+}
+.my-markdown strong {
+	font-size: 16px;
+	font-weight: bold;
+}
