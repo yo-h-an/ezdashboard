@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Highcharts with Dynamic Statistics Table</title>
+    <!-- Include Highcharts Library -->
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <!-- Include Highcharts More module for additional chart types (optional) -->
+    <script src="https://code.highcharts.com/highcharts-more.js"></script>
+    <!-- Include Highcharts Data module for data processing (optional) -->
+    <script src="https://code.highcharts.com/modules/data.js"></script>
+    <!-- Include Highcharts Export module for exporting (optional) -->
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <!-- Include Highcharts Accessibility module for accessibility (optional) -->
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer; /* Indicates that the header is clickable */
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        th.sorted-asc::after {
+            content: ' ↑';
+        }
+        th.sorted-desc::after {
+            content: ' ↓';
+        }
+    </style>
+</head>
+<body>
+    <h1>Highcharts with Dynamic Statistics Table</h1>
+    <!-- Container for the chart -->
+    <div id="container" style="width: 100%; height: 500px;"></div>
+
+    <!-- Table for statistics -->
+    <table>
+        <thead>
+            <tr>
+                <th id="sort-series">Series</th>
+                <th id="sort-min">Min Value</th>
+                <th id="sort-max">Max Value</th>
+                <th id="sort-avg">Average Value</th>
+            </tr>
+        </thead>
+        <tbody id="stats-table">
+            <!-- Rows will be dynamically added or removed -->
+        </tbody>
+    </table>
+
+    <script>
+        // Sample data for time series
+        const timeSeriesData1 = [
+            [Date.UTC(2024, 0, 1), 29.9],
+            [Date.UTC(2024, 0, 2), 71.5],
+            [Date.UTC(2024, 0, 3), 106.4],
+            [Date.UTC(2024, 0, 4), 129.2],
+            [Date.UTC(2024, 0, 5), 144.0],
+            [Date.UTC(2024, 0, 6), 176.0]
+        ];
+
+        const timeSeriesData2 = [
+            [Date.UTC(2024, 0, 1), 14.9],
+            [Date.UTC(2024, 0, 2), 35.5],
+            [Date.UTC(2024, 0, 3), 56.4],
+            [Date.UTC(2024, 0, 4), 72.2],
+            [Date.UTC(2024, 0, 5), 92.0],
+            [Date.UTC(2024, 0, 6), 106.0]
+        ];
+
+        // Function to calculate statistics
+        function calculateStats(data) {
+            const values = data.map(point => point[1]);
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            const avg = values.reduce((a, b) => a + b, 0) / values.length;
+            return { min, max, avg };
+        }
+
+        // Function to update the statistics table
+        function updateTable() {
+            const visibleSeries = chart.series.filter(series => series.visible);
+            const statsTable = document.getElementById('stats-table');
+            statsTable.innerHTML = ''; // Clear existing rows
+
+            visibleSeries.forEach((series, index) => {
+                const data = series.points.filter(point => {
+                    const x = point.x;
+                    return x >= chart.xAxis[0].min && x <= chart.xAxis[0].max;
+                }).map(point => [point.x, point.y]);
+
+                const stats = calculateStats(data);
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>Series ${index + 1}</td>
+                    <td>${stats.min.toFixed(2)}</td>
+                    <td>${stats.max.toFixed(2)}</td>
+                    <td>${stats.avg.toFixed(2)}</td>
+                `;
+                statsTable.appendChild(row);
+            });
+        }
+
+        // Function to sort table
+        function sortTable(columnIndex, ascending) {
+            const table = document.getElementById('stats-table');
+            const rows = Array.from(table.querySelectorAll('tr'));
+            rows.sort((rowA, rowB) => {
+                const cellA = parseFloat(rowA.cells[columnIndex].textContent);
+                const cellB = parseFloat(rowB.cells[columnIndex].textContent);
+                return ascending ? cellA - cellB : cellB - cellA;
+            });
+            rows.forEach(row => table.appendChild(row));
+            // Update header classes
+            const headers = document.querySelectorAll('th');
+            headers.forEach(th => th.classList.remove('sorted-asc', 'sorted-desc'));
+            headers[columnIndex].classList.add(ascending ? 'sorted-asc' : 'sorted-desc');
+        }
+
+        // Initialize the chart
+        const chart = Highcharts.chart('container', {
+            chart: {
+                type: 'line',
+                events: {
+                    load: function() {
+                        updateTable();
+                    },
+                    redraw: function() {
+                        updateTable();
+                    }
+                }
+            },
+            title: {
+                text: 'Time Series Data'
+            },
+            xAxis: {
+                type: 'datetime',
+                title: {
+                    text: 'Date'
+                },
+                minRange: 24 * 3600 * 1000 // one day
+            },
+            yAxis: {
+                title: {
+                    text: 'Value'
+                }
+            },
+            rangeSelector: {
+                buttons: [{
+                    type: 'day',
+                    count: 1,
+                    text: '1d'
+                }, {
+                    type: 'week',
+                    count: 1,
+                    text: '1w'
+                }, {
+                    type: 'month',
+                    count: 1,
+                    text: '1m'
+                }, {
+                    type: 'all',
+                    text: 'All'
+                }],
+                selected: 3, // 'All' is selected by default
+                inputEnabled: false // Disable the input box for range selection
+            },
+            series: [{
+                name: 'Series 1',
+                data: timeSeriesData1
+            }, {
+                name: 'Series 2',
+                data: timeSeriesData2
+            }],
+            legend: {
+                itemClick: function(event) {
+                    // Prevent the default behavior of toggling visibility
+                    event.preventDefault();
+
+                    // Toggle the visibility of the series
+                    const series = this.chart.series[event.target.index];
+                    const visibility = !series.visible;
+                    series.setVisible(visibility, false);
+
+                    // Update the table based on the new visibility
+                    updateTable();
+
+                    // Return false to prevent default behavior
+                    return false;
+                }
+            }
+        });
+
+        // Update table initially
+        updateTable();
+
+        // Add click event listeners to table headers
+        document.getElementById('sort-series').addEventListener('click', () => {
+            sortTable(0, true); // Sort "Series" column alphabetically (ascending)
+        });
+        document.getElementById('sort-min').addEventListener('click', () => {
+            sortTable(1, true); // Sort "Min Value" column numerically (ascending)
+        });
+        document.getElementById('sort-max').addEventListener('click', () => {
+            sortTable(2, true); // Sort "Max Value" column numerically (ascending)
+        });
+        document.getElementById('sort-avg').addEventListener('click', () => {
+            sortTable(3, true); // Sort "Average Value" column numerically (ascending)
+        });
+    </script>
+</body>
+</html>
