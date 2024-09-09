@@ -278,7 +278,91 @@ class WrapperDashboard():
         self.dashboard.run(verbose=verbose)
         self.html_dashboard_content = self.dashboard.build(save=save,save_path=save_path,save_name=save_name,verbose=verbose)
 
+data_grouping = kwargs.get('data_grouping',False)
 
+
+
+g = hc.Highstock()
+colors_default_line = __default_colors()
+dic_visible = {c: c not in kwargs.get('hidden',[]) for j,c in enumerate(df.columns)}
+g.series = hc.build.series(df,colors=dic_color, visible = dic_visible, lineWidth = lineWidth, secondary_y = secondary_y, type= dic_type_chart)
+g.yAxis = [
+    {'opposite':False,
+    'labels':{'style':{'fontSize':17}}
+    },
+    {'opposite':True,
+    'labels':{'style':{'fontSize':17}}}
+]
+g.plotOptions.series.dataGrouping.enabled = data_grouping
+g.plotOptions.line.marker.enabled = markers
+if markers:
+    g.plotOptions.line.marker.radius =5
+g.legend.enabled = True
+g.legend.align ='center'
+g.legend.maxHeigth =100
+g.exporting.enabled = exporting
+# g.exporting.buttons.contextButton.menuItems =['list opts']
+g.navigator.enabled = navigator
+if not full_size:
+    g.chart.width = kwargs.get('width':1220/1.25)
+g.chart.height = kwargs.get('height':710)
+g.chart.zoomType = 'x'
+if title:
+    g.title.text=title
+if subtitle:
+    g.subtitle.text=subtitle
+g.plotOptions.series.connectNulls = True
+
+if rebase:
+    g.plotOptions.series.compare = 'percent'
+    g.plotOptions.series.compareStart = True
+    for axis in g.yaxis:
+        axis.setdefault('labels',{})['formatter'] =scripts.FORMATTER_PERCENT_REBASE
+for axis in g.yAxis:
+    axis.setdefault('gridLineWidth',1)
+    axis.setdefault('gridLineDashStyle','Dot')
+
+if y_axis_format:
+    for axis in g.yAxis:
+        axis.setdefault('labels',{})['format'] = y_axis_format
+if y_axis_text:
+    for axis in g.yAxis:
+        axis.setdefault('title',{})['text'] = y_axis_text
+
+g.xAxis.gridLineWidth = 1.0
+g.xAxis.gridLineDashStyle ='Dot'
+
+## add format, text,type,vert zero doted line
+
+
+g.xAxis.labels.style.fontSize = 17
+g.tooltip.enabled = tooltip_enabled
+g.tooltip.valueDecimals =2 
+if rebase:
+    g.tooltip.pointFormat = scripts.TOOLTIP_POINT_FORMAT_PERCENT
+    g.tooltip.positionner = scripts.TOOLTIP_POSITIONER_CENTER_TOP
+else:
+    g.tooltip.pointFormatter = scripts.TOOLTIP_POINT_FORMATTER_QUANTILE
+    if (add_table='perc' or percent_y_axis):
+        for axis in g.yAxis:
+            axis.setdefault('labels',{})['formatter'] = scripts.FORMATTER_PERCENT
+g.credits_enabled = credits_enabled
+g.credits.text = "from {} to {}".format(dk.index[0],df.index[-1])
+
+if kwargs.get('return_object',False):
+    return g
+
+if add_table = 'perf':
+    html = g.plot_with_table_1(save=save, version=_VERSION,save_path=save_path,notebook=True,dated=save_dated)
+elif add_table = 'perf1b':
+    html = g.plot_with_table_3(save=save, version=_VERSION,save_path=save_path,notebook=True,dated=save_dated)
+elif add_table = 'perc':
+    html = g.plot_with_table_2(save=save, version=_VERSION,save_path=save_path,notebook=True,dated=save_dated)
+else:
+    html = g.plot(save=save, version=_VERSION,save_path=save_path,notebook=True,dated=save_dated)
+if display:
+    display(HTML(html))
+return html
 
 
     
