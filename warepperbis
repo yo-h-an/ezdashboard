@@ -1,0 +1,264 @@
+class HighchartsDashboard:
+    def __init__(self):
+        self.tabs_data = []
+
+    def add_tab(self, main_tab_label, subtabs):
+        """
+        Adds a main tab with its corresponding subtabs.
+
+        Args:
+            main_tab_label (str): The label of the main tab.
+            subtabs (list of dict): A list of dictionaries where each dict contains:
+                                    - 'sub_tab_label': Label for the subtab.
+                                    - 'div_id': The ID of the div container for Highcharts.
+                                    - 'chart_script': The JavaScript to initialize the Highcharts chart.
+        """
+        self.tabs_data.append({
+            'main_tab': main_tab_label,
+            'subtabs': subtabs
+        })
+
+    def generate_dashboard(self, file_path):
+        """
+        Generates and saves the dashboard HTML to a file.
+
+        Args:
+            file_path (str): Path where the HTML file will be saved.
+        """
+        html_content = self._generate_html(self.tabs_data)
+        with open(file_path, 'w') as file:
+            file.write(html_content)
+        print(f"Dashboard saved to {file_path}")
+
+    def _generate_html(self, tabs_data):
+        """
+        Internal method to generate the HTML structure.
+
+        Args:
+            tabs_data (list of dict): The data structure for the main tabs and subtabs.
+
+        Returns:
+            str: The complete HTML content for the dashboard.
+        """
+        # Generate the main tabs and subtabs
+        main_tabs_nav = ''.join([
+            f'<a class="nav-link {"active" if i == 0 else ""}" id="main-tab-{i+1}" data-toggle="pill" href="#main-tab-content-{i+1}" role="tab" aria-controls="main-tab-{i+1}" aria-selected="{str(i == 0).lower()}">{tab["main_tab"]}</a>'
+            for i, tab in enumerate(tabs_data)
+        ])
+
+        # Generate tab content with subtabs for each main tab
+        main_tab_content = ''.join([
+            f'''
+            <div class="tab-pane fade {"show active" if i == 0 else ""}" id="main-tab-content-{i+1}" role="tabpanel" aria-labelledby="main-tab-{i+1}">
+                <!-- Subtab navigation -->
+                <ul class="nav nav-tabs" id="subTab-{i+1}" role="tablist">
+                    {''.join([f'<li class="nav-item"><a class="nav-link {"active" if j == 0 else ""}" id="sub-tab-{i+1}-{j+1}" data-toggle="tab" href="#sub-tab-content-{i+1}-{j+1}" role="tab" aria-controls="sub-tab-{i+1}-{j+1}" aria-selected="{str(j == 0).lower()}">{subtab["sub_tab_label"]}</a></li>' for j, subtab in enumerate(tab["subtabs"])])}
+                </ul>
+                <!-- Subtab content -->
+                <div class="tab-content" id="subTabContent-{i+1}">
+                    {''.join([f'<div class="tab-pane fade {"show active" if j == 0 else ""}" id="sub-tab-content-{i+1}-{j+1}" role="tabpanel" aria-labelledby="sub-tab-{i+1}-{j+1}"><div id="{subtab["div_id"]}" style="width: 100%; height: 450px;"></div><script>{subtab["chart_script"]}</script></div>' for j, subtab in enumerate(tab["subtabs"])])}
+                </div>
+            </div>
+            ''' for i, tab in enumerate(tabs_data)
+        ])
+
+        # Full HTML content with Bootstrap and Highcharts
+        html_content = f'''
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Highcharts Dashboard with Vertical Tabs and Subtabs</title>
+            <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+            <script src="https://code.highcharts.com/highcharts.js"></script>
+            <style>
+                .tabs-left {{
+                    display: flex;
+                    flex-direction: row;
+                }}
+                .nav-pills .nav-link {{
+                    border-radius: 0;
+                }}
+                .tab-content {{
+                    flex-grow: 1;
+                }}
+                .tab-pane {{
+                    padding-left: 15px;
+                }}
+            </style>
+        </head>
+        <body>
+
+        <div class="container-fluid">
+            <h1>Highcharts Dashboard</h1>
+            <div class="row">
+                <div class="col-3">
+                    <!-- Main tab navigation on the left -->
+                    <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                        {main_tabs_nav}
+                    </div>
+                </div>
+                <div class="col-9">
+                    <!-- Main tab content -->
+                    <div class="tab-content" id="v-pills-tabContent">
+                        {main_tab_content}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+        </body>
+        </html>
+        '''
+        
+        return html_content
+
+
+# Example Usage of the Wrapper
+dashboard = HighchartsDashboard()
+
+# Define subtabs for the first main tab
+subtabs1 = [
+    {
+        'sub_tab_label': 'Subtab 1-1',
+        'div_id': 'container1-1',
+        'chart_script': '''
+            document.addEventListener('DOMContentLoaded', function () {
+                Highcharts.chart('container1-1', {
+                    chart: {
+                        type: 'column'
+                    },
+                    title: {
+                        text: 'First Chart in Subtab 1-1'
+                    },
+                    xAxis: {
+                        categories: ['Apples', 'Bananas', 'Oranges']
+                    },
+                    yAxis: {
+                        title: {
+                            text: 'Fruit Eaten'
+                        }
+                    },
+                    series: [{
+                        name: 'Jane',
+                        data: [1, 0, 4]
+                    }, {
+                        name: 'John',
+                        data: [5, 7, 3]
+                    }]
+                });
+            });
+        '''
+    },
+    {
+        'sub_tab_label': 'Subtab 1-2',
+        'div_id': 'container1-2',
+        'chart_script': '''
+            document.addEventListener('DOMContentLoaded', function () {
+                Highcharts.chart('container1-2', {
+                    chart: {
+                        type: 'line'
+                    },
+                    title: {
+                        text: 'Second Chart in Subtab 1-2'
+                    },
+                    xAxis: {
+                        categories: ['Apples', 'Bananas', 'Oranges']
+                    },
+                    yAxis: {
+                        title: {
+                            text: 'Fruit Sold'
+                        }
+                    },
+                    series: [{
+                        name: 'Jane',
+                        data: [3, 1, 6]
+                    }, {
+                        name: 'John',
+                        data: [7, 5, 2]
+                    }]
+                });
+            });
+        '''
+    }
+]
+
+# Add the first main tab with its subtabs
+dashboard.add_tab('Main Tab 1', subtabs1)
+
+# Define subtabs for the second main tab
+subtabs2 = [
+    {
+        'sub_tab_label': 'Subtab 2-1',
+        'div_id': 'container2-1',
+        'chart_script': '''
+            document.addEventListener('DOMContentLoaded', function () {
+                Highcharts.chart('container2-1', {
+                    chart: {
+                        type: 'bar'
+                    },
+                    title: {
+                        text: 'First Chart in Subtab 2-1'
+                    },
+                    xAxis: {
+                        categories: ['Pears', 'Grapes', 'Plums']
+                    },
+                    yAxis: {
+                        title: {
+                            text: 'Fruit Sold'
+                        }
+                    },
+                    series: [{
+                        name: 'Alice',
+                        data: [2, 4, 5]
+                    }, {
+                        name: 'Bob',
+                        data: [3, 5, 7]
+                    }]
+                });
+            });
+        '''
+    },
+    {
+        'sub_tab_label': 'Subtab 2-2',
+        'div_id': 'container2-2',
+        'chart_script': '''
+            document.addEventListener('DOMContentLoaded', function () {
+                Highcharts.chart('container2-2', {
+                    chart: {
+                        type: 'line'
+                    },
+                    title: {
+                        text: 'Second Chart in Subtab 2-2'
+                    },
+                    xAxis: {
+                        categories: ['Mangoes', 'Pineapples', 'Papayas']
+                    },
+                    yAxis: {
+                        title: {
+                            text: 'Fruit Sold'
+                        }
+                    },
+                    series: [{
+                        name: 'Alice',
+                        data: [4, 2, 5]
+                    }, {
+                        name: 'Bob',
+                        data: [6, 7, 1]
+                    }]
+                });
+            });
+        '''
+    }
+]
+
+# Add the second main tab with its subtabs
+dashboard.add_tab('Main Tab 2', subtabs2)
+
+# Export the dashboard as an HTML file
+dashboard.generate_dashboard('/mnt/data/highcharts_dashboard.html')
